@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using API.Extensions;
+using Application.Activities;
+using Application.Core;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Persistence;
+
 
 
 namespace API
@@ -36,23 +41,8 @@ namespace API
         {
 
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPIv5", Version = "v1" });
-            });
-
-            services.AddDbContext<DataContext>(opt =>
-            {
-                opt.UseSqlite(_config.GetConnectionString("DefaultConnection"));
-            });
-
-            //Add CORS Policy where we requires to access resources from a different domain
-            //specify 'url' where our 'client-app' is running from.
-            services.AddCors(opt => {
-                opt.AddPolicy("CorsPolicy", policy => {
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
-                });
-            });
+            //additional services were put in extension folders to keep this class clean.
+            services.AddApplicationServices (_config);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
