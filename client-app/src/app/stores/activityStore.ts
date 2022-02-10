@@ -1,11 +1,9 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agents from "../api/agent";
 import { Activity } from "../models/activity";
-import { v4 as uuid } from "uuid";
 
 export default class ActivityStore {
     activityRegistry = new Map<string, Activity>();
-    
     selectedActivity: Activity | undefined = undefined;
     editMode = false;
     loading = false;
@@ -25,6 +23,8 @@ export default class ActivityStore {
 
     // using arrow function here automatically bind this function in class action
     loadActivities = async () => {
+        this.loadingInitial = true;
+
         try {
             //getting our activities and pass it into a list
             const activities = await agents.activities.list();
@@ -32,9 +32,7 @@ export default class ActivityStore {
             //function as parameter
             //updating states
             activities.forEach(activity => {
-                activity.date = activity.date.split('T')[0];
-
-                this.activityRegistry.set(activity.id, activity);
+                this.setActivity(activity);
             })
             //set loadingInitial observable to false
             this.setLoadingInitial(false);
@@ -49,40 +47,49 @@ export default class ActivityStore {
         }
     }
 
+    loadActivity = async (id: string) => {
+        let activity = this.getActivity(id);
+
+        // if we have the activity from activityRegistry, return selectedActivity
+
+        if (activity) {
+            this.selectedActivity = activity;
+            return activity;
+        } else {
+            this.loadingInitial = true;
+            try {
+                activity = await agents.activities.details(id);
+                this.setActivity(activity);
+                runInAction(() => {
+                    this.selectedActivity = activity;
+                })                
+                this.setLoadingInitial(false);
+                return activity;
+            } catch (error) {
+                console.log(error);
+                this.setLoadingInitial(false);
+            }
+        }
+    }
+
+    //return the activity id or return undefined.
+    private getActivity = (id: string) => {
+        return this.activityRegistry.get(id);
+    }
+
+    //set activity date
+    private setActivity = (activity: Activity) => {
+        activity.date = activity.date.split('T')[0];
+        this.activityRegistry.set(activity.id, activity);
+    }
+
     setLoadingInitial = (state: boolean) => {
         this.loadingInitial = state;
     }
 
-    selectActivity = (id: string) => {
-        /* 
-            x on the left side is a variable that will hold the individial activity that make up the activity array.
-            using ' === ' which means the value only true if both equal value and equal type.
-        */
-        // this.selectedActivity = this.activities.find(a => a.id === id);
-        this.selectedActivity = this.activityRegistry.get(id);
-    }
-
-    cancelSelectedActivity = () => {
-        this.selectedActivity = undefined;
-    }
-
-    /*
-      Using ternary Operator ' ? ' 
-      If id is populated then, use this.selectedActivity(id) function to pass the id, if not then, cancelSelectedActivity() will execute and return undefined.
-    */
-    openForm = (id?: string) => {
-        id ? this.selectActivity(id) : this.cancelSelectedActivity();
-        this.editMode = true;
-    }
-
-    closeForm = () => {
-        this.editMode = false;
-    }
-
-    createActivity = async (activity : Activity) => {
+    createActivity = async (activity: Activity) => {
         this.loading = true;
-        activity.id = uuid();
-        try{
+        try {
             await agents.activities.create(activity);
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
@@ -90,7 +97,7 @@ export default class ActivityStore {
                 this.editMode = false;
                 this.loading = false;
             })
-        }catch (error) {
+        } catch (error) {
             console.log(error);
             runInAction(() => {
                 this.loading = false;
@@ -103,9 +110,9 @@ export default class ActivityStore {
         - Check the presence of activity.id and if it's true then, update setActivities().
         
     */
-    updateActivity = async (activity : Activity) => {
+    updateActivity = async (activity: Activity) => {
         this.loading = true;
-        try{
+        try {
             await agents.activities.update(activity);
             runInAction(() => {
                 // ' ... ' is a spread operator and filter if a.id not equal to activity.id then, newly updated activities. if no activity.id then, create new activity using 'uuid' modules.
@@ -116,26 +123,27 @@ export default class ActivityStore {
                 this.editMode = false;
                 this.loading = false;
             })
-        } catch(error){
+        } catch (error) {
             console.log(error);
             this.loading = false;
         }
     }
 
-    deleteActivity = async (id : string) => {
+    deleteActivity = async (id: string) => {
         this.loading = true;
         try {
             await agents.activities.delete(id);
             runInAction(() => {
                 this.activityRegistry.delete(id);
-                if (this.selectedActivity?.id === id) this.cancelSelectedActivity();
                 this.loading = false;
             })
-        }catch(error){
+        } catch (error) {
             console.log(error);
             runInAction(() => {
                 this.loading = false;
             })
         }
     }
+
+
 }

@@ -1,4 +1,5 @@
 export interface Activity {
+    //use 'any' to get out of typescript restriction.
     id: string;
     title: string;
     date: string;

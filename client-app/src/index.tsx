@@ -5,13 +5,17 @@ import './app/layout/styles.css';
 import App from './app/layout/App';
 import reportWebVitals from './reportWebVitals';
 import { store, StoreContext } from './app/stores/store';
+import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.render(
   //takes a value props from store in store.ts
+  //use <BrowserRouter> to initiate React-router into your app.
   <StoreContext.Provider value={store}>
-    <App />,
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StoreContext.Provider>,
-  
+
   document.getElementById('root')
 );
 

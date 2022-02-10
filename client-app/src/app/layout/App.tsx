@@ -1,40 +1,44 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Container } from 'semantic-ui-react';
 import NavBar from './NavBar';
 import ActivityDashboard from '../../features/activities/dashboard/ActivityDashboard';
-import LoadingComponent from './LoadingComponent';
-import { useStore } from '../stores/store';
 import { observer } from 'mobx-react-lite';
+import { Route, useLocation } from 'react-router-dom';
+import ActivityForm from '../../features/activities/form/ActivityForm';
+import HomePage from '../../features/home/homepage';
+import ActivityDetails from '../../features/activities/details/ActivityDetails';
+
+
+// this looks like html, but in fact this is jsx.
+// When Adding looping something in Apps.tsx or react, make sure to give element 'key' in each tags
+// otherwise react wont tell the difference between the elements that its looping. 
+// We need <Fragment> or <> or <div> .Because we need to allow return multiple element inside react component.
+// using 'exact' to appear ONLY ON that page.
+// adding '/id' in path acts as a placeholder, which will replace to the ACTUAL activity id.
+// if the route component highlighted in yellow, means those do not OBSERVED the activity store.
+// if the route component highlighted in blue, means those I added observer(), to observe the activity store.
+
 
 function App() {
-  //destructuring the object from store
-  const {activityStore} = useStore();
-
-  /* 
-    - use anonymous functions '()'
-    - But if we use 'useEffect' as such, it'll undergo infinite loop. Re-render gonna happen.
-    - add array '[]' after 'useEffects()' this is to ensure useEffects() only runs once.
-  */
-  useEffect(() => {
-    activityStore.loadActivities();
-  }, [activityStore])
-
-
-  if (activityStore.loadingInitial) return <LoadingComponent content='Loading app' />
+  const location = useLocation();
 
   return (
-    /*
-        - this looks like html, but in fact this is jsx.
-        - use 'any' to get out of typescript restriction.      
-        - When Adding looping something in Apps.tsx or react, make sure to give element 'key' in each tags
-        - otherwise react wont tell the difference between the elements that its looping. 
-        - We need <Fragment> or <> or <div> .Because we need to allow return multiple element inside react component.
-    */
     <>
-      <NavBar />
-      <Container style={{ marginTop: '7em' }}>       
-        <ActivityDashboard/>
-      </Container>
+      <Route exact path='/' component={HomePage} />
+      {/* this line path={'/(.+)'} means, that any route that match '/' OR '+' it will match this route method  */}
+      <Route
+        path={'/(.+)'}
+        render={() => (
+          <>
+            <NavBar />
+            <Container style={{ marginTop: '7em' }}>
+              <Route exact path='/activities' component={ActivityDashboard} />
+              <Route path='/activities/:id' component={ActivityDetails} />
+              <Route key={location.key} path={['/createActivity', '/manage/:id']} component={ActivityForm} />
+            </Container>
+          </>
+        )}
+      />
     </>
   );
 }
