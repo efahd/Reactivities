@@ -1,6 +1,8 @@
+//for import, positioning is important for CSS, since compiler reads from top to bottom. hence, bottom CSS will overwrite the above CSS.
 import React from 'react';
 import ReactDOM from 'react-dom'; //react-dom for Web app. react-native for mobile app
 import 'semantic-ui-css/semantic.min.css';
+import 'react-calendar/dist/Calendar.css'; //manually key-in this css for Semantic Calendar.
 import './app/layout/styles.css';
 import App from './app/layout/App';
 import reportWebVitals from './reportWebVitals';

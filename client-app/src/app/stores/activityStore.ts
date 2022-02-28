@@ -21,6 +21,21 @@ export default class ActivityStore {
         return Array.from(this.activityRegistry.values()).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     }
 
+    //reduce function has an initial value, hence need to use the {} bracket and specify type of key inside them.
+    
+    get groupedActivities(){
+        return Object.entries(
+            this.activitiesByDate.reduce((activities, activity) => {
+                // string date will represent as key for each of the objects.
+                // inside the [object] bracket are the object properties access.
+                // single line ternary code. compare1 = compare2 ? [if match] : [if not match]
+                const date = activity.date;
+                activities[date] = activities[date] ? [...activities[date], activity] : [activity];
+                return activities;
+            }, {} as {[key: string]: Activity[]})
+        )
+    }
+
     // using arrow function here automatically bind this function in class action
     loadActivities = async () => {
         this.loadingInitial = true;
