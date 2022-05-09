@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom'; //react-dom for Web app. react-native for mobi
 import 'semantic-ui-css/semantic.min.css';
 import 'react-calendar/dist/Calendar.css'; //manually key-in this css for Semantic Calendar.
 import 'react-toastify/dist/ReactToastify.min.css'; //manually key-in this css to use toastify css
+import 'react-datepicker/dist/react-datepicker.css';//manually key-in this css to use datepicker css
 import './app/layout/styles.css';
 import App from './app/layout/App';
 import reportWebVitals from './reportWebVitals';
