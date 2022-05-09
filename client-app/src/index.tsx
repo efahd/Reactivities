@@ -3,21 +3,25 @@ import React from 'react';
 import ReactDOM from 'react-dom'; //react-dom for Web app. react-native for mobile app
 import 'semantic-ui-css/semantic.min.css';
 import 'react-calendar/dist/Calendar.css'; //manually key-in this css for Semantic Calendar.
+import 'react-toastify/dist/ReactToastify.min.css'; //manually key-in this css to use toastify css
 import './app/layout/styles.css';
 import App from './app/layout/App';
 import reportWebVitals from './reportWebVitals';
 import { store, StoreContext } from './app/stores/store';
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'react-router-dom';
+import {createBrowserHistory} from 'history'; // manually key-in, loads createbrowserhistory function from history package.
+
+export const history = createBrowserHistory();
 
 ReactDOM.render(
-  //takes a value props from store in store.ts
-  //use <BrowserRouter> to initiate React-router into your app.
+  // takes a value props from store in store.ts
+  // use <BrowserRouter> to initiate React-router into your app.
+  // BrowserRouter automatically provides history obj to our App. Where we can use React.Hooks
   <StoreContext.Provider value={store}>
-    <BrowserRouter>
+    <Router history={history}>
       <App />
-    </BrowserRouter>
+    </Router>
   </StoreContext.Provider>,
-
   document.getElementById('root')
 );
 

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Core;
 using Domain;
+using FluentValidation;
 using MediatR;
 using Persistence;
 
@@ -11,13 +13,24 @@ namespace Application.Activities
     public class Create
     {
         //Query return data; Command Do not
-        public class Command : IRequest
+        //But in this case, we return data by Result<Unit> which is void or return Nothing.
+        public class Command : IRequest<Result<Unit>>
         {
             public Activity Activity {get; set;}
 
         }
 
-        public class handler : IRequestHandler<Command>
+        //Validate the Command Class since it contain our Activity
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            //Generate Constructor CommandValidator
+            public CommandValidator()
+            {
+                RuleFor(x => x.Activity).SetValidator(new ActivityValidator());
+            }
+        }
+
+        public class handler : IRequestHandler<Command, Result<Unit>>
         {
         private readonly DataContext _context;
             public handler(DataContext context)
@@ -25,14 +38,17 @@ namespace Application.Activities
             _context = context;
             }
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Result<Unit>> Handle(Command request, CancellationToken cancellationToken)
             {
                 _context.Activities.Add(request.Activity);
 
-                await _context.SaveChangesAsync();
+                //saveChangesAsync return Integer value. 
+                //if nothing been written to the Database, which value is 0, then results return false
+                //else, value will be more than 0, hence result return true
+                var result = await _context.SaveChangesAsync() > 0;
+                if (!result) return Result<Unit>.Failure("Failed to Create Activity");
 
-                //when use MediatR send, the app waiting for the action to finish inside ApiController. Hence, we return nothing just to let the app knows the activity done.
-                return Unit.Value;
+                return Result<Unit>.Success(Unit.Value);
             }
         }
     }
